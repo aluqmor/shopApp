@@ -7,4 +7,4 @@ use App\Http\Controllers\SaleController;
 //     return view('welcome');
 // });
 
-Route::resource('sales', SaleController::class);
+Route::get('/', [SaleController::class, 'index'])->name('sales.index');

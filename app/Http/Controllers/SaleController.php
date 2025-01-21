@@ -22,7 +22,7 @@ class SaleController extends Controller
     {
         // obtener categorías y configuraciones de imagnes
         $categories = Category::all();
-        $maxFiles = Setting::first()->maxFiles; // numero maximo de fotos
+        $maxFiles = Setting::first()->maxFiles;
         return view('sales.create', compact('categories', 'maxFiles'));
     }
 
