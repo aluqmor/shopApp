@@ -9,12 +9,21 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
         Schema::create('images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sale_id')->constrained('sales');
-            $table->string('route');
+            $table->foreignId('sale_id')->constrained()->onDelete('cascade');
+            $table->string('route'); // Ruta de almacenamiento de imagen
         });
+    }
+    
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('images');
     }
 };

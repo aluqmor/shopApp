@@ -15,18 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('role')->default('user');
-            $table->rememberToken();
             $table->timestamps();
         });
 
         $user = new User();
-        $user->name = 'admin';
-        $user->email = 'admin@test.es';
-        $user->role = 'admin';
-        $user->password = Hash::make('admin');
         $user->email_verified_at = now();
         $user->save();
 

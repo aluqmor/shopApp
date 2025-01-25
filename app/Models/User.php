@@ -47,11 +47,8 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    function isAdmin(){
-        return $this->role == 'admin';
-    }
-
-    function isSuper(){
-        return $this->id == 1 && $this->role == 'admin';
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
     }
 }

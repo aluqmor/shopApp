@@ -8,63 +8,111 @@ use App\Models\Setting;
 use App\Models\Image;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 
 class SaleController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth')->except(['index', 'show']);
+    }
+
     public function index()
     {
-        // mostrar todos los anuncios (excepto los vendidos)
         $sales = Sale::where('isSold', false)->with('category', 'user')->get();
         return view('sales.index', compact('sales'));
     }
 
     public function create()
     {
-        // obtener categorías y configuraciones de imagnes
         $categories = Category::all();
-        $maxFiles = Setting::first()->maxFiles;
-        return view('sales.create', compact('categories', 'maxFiles'));
+        return view('sales.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
+        $maxImages = Setting::where('name', 'maxImages')->value('maxImages') ?? 5;
         $request->validate([
             'product' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|gt:0',
             'category_id' => 'required|exists:categories,id',
-            'price' => 'required|numeric',
-            'description' => 'nullable|string',
-            'images' => 'required|array|max:'.Setting::first()->maxFiles,
-            'images.*' => 'file|mimes:jpeg,png,jpg,gif|max:2048',
+            'images' => "array|max:$maxImages",
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $sale = Sale::create([
-            'user_id' => Auth::id(),
             'product' => $request->product,
-            'category_id' => $request->category_id,
-            'price' => $request->price,
             'description' => $request->description,
-            'image' => $this->uploadThumbnail($request->file('images')[0]),
+            'price' => $request->price,
+            'category_id' => $request->category_id,
+            'user_id' => Auth::id(),
+            'isSold' => false,
         ]);
 
-        // subir las imagenes
-        foreach ($request->file('images') as $image) {
-            $route = $this->uploadImage($image);
-            Image::create([
-                'sale_id' => $sale->id,
-                'route' => $route,
-            ]);
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('images', 'public');
+                Image::create([
+                    'sale_id' => $sale->id,
+                    'route' => $path,
+                ]);
+            }
         }
 
-        return redirect()->route('sales.index');
+        return redirect()->route('sales.index')->with('success', 'Anuncio creado exitosamente.');
     }
 
-    private function uploadThumbnail($image)
+    public function show($id)
     {
-        return $image->store('thumbnails', 'public');
+        $sale = Sale::with('category', 'user', 'images')->findOrFail($id);
+        return view('sales.show', compact('sale'));
     }
 
-    private function uploadImage($image)
+    public function edit($id)
     {
-        return $image->store('sales', 'public');
+        $sale = Sale::findOrFail($id);
+        $categories = Category::all();
+        return view('sales.edit', compact('sale', 'categories'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $sale = Sale::findOrFail($id);
+        $maxImages = Setting::where('name', 'maxImages')->value('maxImages') ?? 5;
+        $request->validate([
+            'product' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric',
+            'category_id' => 'required|exists:categories,id',
+            'images' => "array|max:$maxImages",
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $sale->update([
+            'product' => $request->product,
+            'description' => $request->description,
+            'price' => $request->price,
+            'category_id' => $request->category_id,
+        ]);
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('images', 'public');
+                Image::create([
+                    'sale_id' => $sale->id,
+                    'route' => $path,
+                ]);
+            }
+        }
+
+        return redirect()->route('sales.index')->with('success', 'Anuncio actualizado exitosamente.');
+    }
+
+    public function destroy($id)
+    {
+        $sale = Sale::findOrFail($id);
+        $sale->delete();
+        return redirect()->route('sales.index')->with('success', 'Anuncio eliminado exitosamente.');
     }
 }
