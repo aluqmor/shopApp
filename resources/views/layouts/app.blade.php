@@ -18,7 +18,7 @@
 </head>
 
 <body>
-    <div id="app">
+    <div id="app" class="d-flex flex-column min-vh-100">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">shopApp</a>
@@ -82,6 +82,15 @@
         <main class="py-4">
             @yield('content')
         </main>
+        <footer class="bg-white shadow mt-auto py-3">
+            <div class="container">
+                <div class="text-center">
+                    <p class="mb-0 text-muted">
+                        &copy; <?php echo date('Y'); ?> Álvaro Luque Morillo
+                    </p>
+                </div>
+            </div>
+        </footer>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
 </body>

@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\Category;
 use App\Models\Setting;
 use App\Models\Image;
+use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
@@ -15,21 +16,22 @@ class SaleController extends Controller
     public function __construct()
     {
         $this->middleware('auth')->except(['index', 'show']);
+        $this->middleware('auth')->only('purchase');
     }
 
     public function index()
     {
-        $query = Sale::with(['category', 'images']);
+        $query = Sale::with(['category', 'images', 'purchases']);
         
         if (!Auth::check()) {
             $query->where('isSold', false);
         } else {
             $query->where(function($q) {
                 $q->where('isSold', false)
-                  ->orWhere('user_id', Auth::id())
-                  ->orWhereHas('purchases', function($q) {
-                      $q->where('user_id', Auth::id());
-                  });
+                ->orWhere('user_id', Auth::id())
+                ->orWhereHas('purchases', function($q) {
+                    $q->where('user_id', Auth::id());
+                });
             });
         }
         
@@ -58,7 +60,7 @@ class SaleController extends Controller
         ]);
 
         return redirect()->route('sales.show', $sale->id)
-                        ->with('success', '¡Producto comprado exitosamente!');
+                        ->with('success', 'Producto comprado correctamente');
     }
 
     public function create()
@@ -103,7 +105,16 @@ class SaleController extends Controller
 
     public function show($id)
     {
-        $sale = Sale::with('category', 'user', 'images')->findOrFail($id);
+        $sale = Sale::with('category', 'user', 'images', 'purchases')->findOrFail($id);
+
+        // Si el producto está vendido y el usuario no es ni el vendedor ni el comprador
+        if ($sale->isSold && 
+            Auth::id() != $sale->user_id && 
+            !$sale->purchases->where('user_id', Auth::id())->count()) {
+            return redirect()->route('sales.index')
+                            ->with('error', 'Este producto ya no está disponible.');
+        }
+
         return view('sales.show', compact('sale'));
     }
 
