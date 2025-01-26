@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Productos</h1>
         <a href="{{ route('sales.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Nuevo Anuncio
+            <i class="fas fa-plus"></i> Crear anuncio
         </a>
     </div>
 
@@ -26,14 +26,16 @@
                 <div class="col-md-4">
                     <div class="card h-100 shadow-sm">
                         <div class="position-relative">
-                            @if($sale->img)
-                                <img src="data:image/jpeg;base64,{{ base64_encode($sale->img) }}" 
-                                     class="card-img-top" style="height: 200px; object-fit: cover;" 
-                                     alt="{{ $sale->product }}">
+                            @if($sale->images->isNotEmpty())
+                                <img src="{{ asset('storage/' . $sale->images->first()->route) }}" 
+                                    class="card-img-top" 
+                                    style="height: 200px; object-fit: cover;" 
+                                    alt="{{ $sale->product }}">
                             @else
                                 <img src="{{ asset('images/default-thumbnail.jpg') }}" 
-                                     class="card-img-top" style="height: 200px; object-fit: cover;" 
-                                     alt="Sin imagen">
+                                    class="card-img-top" 
+                                    style="height: 200px; object-fit: cover;" 
+                                    alt="Sin imagen">
                             @endif
                             <span class="position-absolute top-0 end-0 badge bg-primary m-2">
                                 {{ $sale->category->name }}
@@ -42,7 +44,7 @@
                         <div class="card-body">
                             <h5 class="card-title text-truncate">{{ $sale->product }}</h5>
                             <p class="card-text text-truncate">{{ $sale->description }}</p>
-                            <h6 class="text-primary">${{ number_format($sale->price, 2) }}</h6>
+                            <h6 class="text-primary">€{{ number_format($sale->price, 0, ',', '.') }}</h6>
                         </div>
                         <div class="card-footer bg-transparent border-top-0">
                             <div class="d-grid">

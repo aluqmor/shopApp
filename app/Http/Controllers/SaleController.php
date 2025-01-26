@@ -19,8 +19,46 @@ class SaleController extends Controller
 
     public function index()
     {
-        $sales = Sale::where('isSold', false)->with('category', 'user')->get();
+        $query = Sale::with(['category', 'images']);
+        
+        if (!Auth::check()) {
+            $query->where('isSold', false);
+        } else {
+            $query->where(function($q) {
+                $q->where('isSold', false)
+                  ->orWhere('user_id', Auth::id())
+                  ->orWhereHas('purchases', function($q) {
+                      $q->where('user_id', Auth::id());
+                  });
+            });
+        }
+        
+        $sales = $query->latest()->get();
         return view('sales.index', compact('sales'));
+    }
+
+    public function purchase($id)
+    {
+        $sale = Sale::findOrFail($id);
+        
+        if ($sale->isSold) {
+            return back()->with('error', 'Este producto ya ha sido vendido.');
+        }
+
+        if ($sale->user_id === Auth::id()) {
+            return back()->with('error', 'No puedes comprar tu propio producto.');
+        }
+
+        $sale->update(['isSold' => true]);
+        
+        Purchase::create([
+            'sale_id' => $sale->id,
+            'user_id' => Auth::id(),
+            'purchase_date' => now()
+        ]);
+
+        return redirect()->route('sales.show', $sale->id)
+                        ->with('success', '¡Producto comprado exitosamente!');
     }
 
     public function create()
@@ -106,13 +144,13 @@ class SaleController extends Controller
             }
         }
 
-        return redirect()->route('sales.index')->with('success', 'Anuncio actualizado exitosamente.');
+        return redirect()->route('sales.index')->with('success', 'Anuncio actualizado.');
     }
 
     public function destroy($id)
     {
         $sale = Sale::findOrFail($id);
         $sale->delete();
-        return redirect()->route('sales.index')->with('success', 'Anuncio eliminado exitosamente.');
+        return redirect()->route('sales.index')->with('success', 'Anuncio eliminado.');
     }
 }

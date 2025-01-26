@@ -20,10 +20,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        $user = new User();
-        $user->email_verified_at = now();
-        $user->save();
-
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
