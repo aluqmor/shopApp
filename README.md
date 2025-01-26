@@ -21,9 +21,6 @@ Esta es una aplicación web desarrollada en Laravel que permite crear, comprar y
 ![4](screenshots/4.jpg)
 
 
-![5](screenshots/5.jpg)
-
-
 ## Instalación
 
 Sigue estos pasos para descargar y configurar el repositorio:
