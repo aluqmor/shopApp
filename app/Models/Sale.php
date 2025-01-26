@@ -25,4 +25,9 @@ class Sale extends Model
     {
         return $this->hasMany(Image::class);
     }
+
+    public function purchases()
+{
+    return $this->hasMany(Purchase::class);
+}
 }

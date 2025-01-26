@@ -25,6 +25,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/username', [ProfileController::class, 'changeUsername'])->name('profile.username');
 });
 
+// Rutas de ventas
+Route::post('/sales/{sale}/purchase', [SaleController::class, 'purchase'])
+    ->name('sales.purchase')
+    ->middleware('auth');
+
 Route::get('/', [SaleController::class, 'index'])->name('sales.index');
 Route::resource('sales', SaleController::class);
 Route::resource('categories', CategoryController::class); 
